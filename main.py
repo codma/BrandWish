@@ -1,100 +1,79 @@
-from typing import List, Any
-
 from openpyxl import Workbook, load_workbook
+import pymysql
 
+connectionPublic = pymysql.connect(host=''
+                                   , user=''
+                                   , password=''
+                                   , db='', charset='')
+connectionProduct = pymysql.connect(host=''
+                                    , user=''
+                                    , password='x'
+                                    , db='', charset='')
+
+cur1 = connectionPublic.cursor()
+
+sql = "SELECT user_wish.id" \
+      ", user_wish.user_id" \
+      ", user_wish_item_brand.brand_id " \
+      "FROM user_wish" \
+      ", user_wish_item_brand " \
+      "WHERE user_wish.id = user_wish_item_brand.wish_id " \
+      "AND user_wish.type = 'BRAND' " \
+      "AND user_wish_item_brand.is_deleted = '0';"
+
+cur1.execute(sql)
+connectionPublic.commit()
+
+datas1 = cur1.fetchall()
+
+cur2 = connectionProduct.cursor()
+
+sql = "SELECT brand.brand_id, brand.name_kor FROM brand;"
+
+cur2.execute(sql)
+connectionProduct.commit()
+
+datas2 = cur2.fetchall()
 # write_wb = Workbook()
-# write_wb.save("/Users/jinjoolee/Desktop/Project/python/BrandWish.xlsx")
+# write_wb.save("/Users/trenbe/Desktop/파이썬/브랜드찜파일3.xlsx")
+
+
 wb = load_workbook("/Users/jinjoolee/Desktop/Project/python/BrandWish.xlsx")
-# print(wb.sheetnames)
+write_ws = wb['Sheet']
+# write_ws.cell(1, 1, 'wish_id')
+# write_ws.cell(1, 2, 'user_id')
+# write_ws.cell(1, 3, 'brand_id')
+# write_ws.cell(1, 4, 'brand_name')
+# wb.save("/Users/trenbe/Desktop/파이썬/브랜드찜파일3.xlsx")
+# result = []
+
+
+result = []
+# 숫자0부터 datas1의 row수 만큼 증가시키는 반복문(증가하는 숫자 n으로 표기)
+for i in range(1, int(cur1.rowcount / 2)):
+    # 숫자0부터 datas2의 row수 만큼 증가시키는 반복문(증가하는 숫자 n1으로 표기)
+    for j in range(1, cur2.rowcount):
+        if datas1[i][2] == datas2[j][0]:
+            result.append(str(datas1[i][0]))
+            result.append(str(datas1[i][1]))
+            result.append(str(datas1[i][2]))
+            result.append(str(datas2[j][1]))
+            write_ws.append(result)
+            result = []
+            break;
+wb.save("/Users/jinjoolee/Desktop/Project/python/BrandWish.xlsx")
 write_ws = wb['Sheet']
 
-wish_wb = load_workbook("/Users/jinjoolee/Desktop/Project/python/wishlist.xlsx")
-wish_ws = wish_wb['Sheet']
-
-wish_brand_wb = load_workbook("/Users/jinjoolee/Desktop/Project/python/wishlist_brand.xlsx")
-wish_brand_ws = wish_brand_wb['Sheet']
-
-brand_wb = load_workbook("/Users/jinjoolee/Desktop/Project/python/brand.xlsx")
-brand_ws = brand_wb['Sheet']
-
-all_values1 = []
-all_values2 = []
-all_values3 = []
-result_values = []
-
-cellCount = 0
-for row in wish_ws.rows:
-    row_value1 = []
-    for cell in row:
-        if cellCount == 0:
-            row_value1.append(cell.value)
-        if cellCount == 1:
-            row_value1.append(cell.value)
-        if cellCount == 2:
-            row_value1.append(cell.value)
-        cellCount += 1
-    cellCount = 0
-    all_values1.append(row_value1)
-# wish_id = 0	user_id = 1	type = 2
-
-
-for row2 in wish_brand_ws.rows:
-    row_value2 = []
-    for cell2 in row2:
-        row_value2.append(cell2.value)
-    all_values2.append(row_value2)
-# id	wish_id	brand_id	is_checked	is_deleted	created_date	modified_date	deleted_date
-
-for row3 in brand_ws.rows:
-    row_value3 = []
-    for cell3 in row3:
-        if cellCount == 0:
-            row_value3.append(cell3.value)
-        if cellCount == 1:
-            row_value3.append(cell3.value)
-        if cellCount == 2:
-            row_value3.append(cell3.value)
-        cellCount += 1
-    cellCount = 0
-    all_values3.append(row_value3)
-#brand_id = 0	name_eng = 1	name_kor = 2	designer_type
-
-cellCount2 = 0
-
-rowCount = 0
-rowCount2 = 0
-
-for row4 in all_values1:
-    results = []
-    cellCount = 0
-    if rowCount == 0:
-        rowCount += 1
-        continue
-    for cell4 in row4:
-        rowCount2 = 0
-        if cellCount == 0:
-            for row5 in all_values2:
-                if rowCount2 == 0:
-                    rowCount2 += 1
-                    continue
-                cellCount2 = 0
-                for cell5 in row5:
-                    if cellCount2 == 1:
-                        if cell4 == cell5:
-                            results.append(str(row4[0]))
-                            results.append(str(row4[1]))
-                            results.append(str(row5[2]))
-                            results.append(str(row5[3]))
-                            results.append(str(row5[4]))
-                            results.append(str(row5[5]))
-                            results.append(row5[6])
-                            results.append(row5[7])
-                    cellCount2 += 1
-                if len(results) != 0:
-                    write_ws.append(results)
-                    # 테스트
-                    # wb.save("/Users/jinjoolee/Desktop/Project/python/BrandWish/xlsx")
-                    results = []
-    write_ws.append(results)
+for i in range(int((cur1.rowcount / 2) + 1), int(cur1.rowcount / 2)):
+    # 숫자0부터 datas2의 row수 만큼 증가시키는 반복문(증가하는 숫자 n1으로 표기)
+    for j in range(1, cur2.rowcount):
+        if datas1[i][2] == datas2[j][0]:
+            result.append(str(datas1[i][0]))
+            result.append(str(datas1[i][1]))
+            result.append(str(datas1[i][2]))
+            result.append(str(datas2[j][1]))
+            write_ws.append(result)
+            result = []
+            break;
 
 wb.save("/Users/jinjoolee/Desktop/Project/python/BrandWish.xlsx")
